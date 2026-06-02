@@ -1,0 +1,19 @@
+# ML
+scikit-learn==1.4.0
+pandas==2.2.0
+numpy==1.26.3
+
+# Визуализация
+matplotlib==3.8.2
+seaborn==0.13.1
+
+# Jupyter
+jupyter==1.0.0
+ipykernel==6.29.0
+
+# MLOps (подключим на следующем этапе)
+# mlflow==2.10.0
+# dvc==3.42.0
+
+# Тесты
+pytest==8.0.0
