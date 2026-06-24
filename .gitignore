@@ -8,11 +8,14 @@ build/
 venv/
 env/
 
-# Данные и модели — большие файлы не хранятся в Git
-data/raw/*
-!data/raw/.gitkeep
-models/*
-!models/.gitkeep
+# Данные и модели (DVC управляет ими)
+data/raw/churn.csv
+artifacts/
+models/
+
+# НО! .dvc файлы должны коммититься в Git
+!*.dvc
+!data/raw/*.dvc
 
 # Jupyter
 .ipynb_checkpoints/
@@ -29,10 +32,7 @@ mlruns/
 .DS_Store
 Thumbs.db
 
-# Логи
-*.log
-
-# Артефакты (модели, pipeline, scaler)
-artifacts/
-*.joblib
-*.pkl
+# DVC cache (НЕ коммитим)
+.dvc/cache/
+.dvc/tmp/
+/artifacts
