@@ -9,6 +9,10 @@ setup:
 # Обучение модели
 train:
 	.venv/bin/python src/train.py
+	
+# Обучение с тюнингом гиперпараметров (пример)
+train-tune:
+	.venv/bin/python src/train.py --n_estimators 200 --max_depth 7	
 
 # Предсказание
 predict:

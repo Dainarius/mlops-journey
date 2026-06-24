@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# Виртуальное окружение (не нужно в контейнере — там своё)
+.venv/
+venv/
+env/
+
+# Данные и артефакты (монтируем через volumes)
+data/raw/*.csv
+models/
+artifacts/
+
+# Jupyter
+notebooks/
+.ipynb_checkpoints/
+
+# IDE и OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Python кэш
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# MLflow
+mlruns/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Документация
+README.md
+LICENSE

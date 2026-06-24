@@ -31,3 +31,8 @@ Thumbs.db
 
 # Логи
 *.log
+
+# Артефакты (модели, pipeline, scaler)
+artifacts/
+*.joblib
+*.pkl

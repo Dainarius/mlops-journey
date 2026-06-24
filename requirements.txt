@@ -2,6 +2,7 @@
 scikit-learn==1.4.0
 pandas==2.2.0
 numpy==1.26.3
+pyarrow==15.0.0
 
 # Визуализация
 matplotlib==3.8.2
@@ -12,8 +13,9 @@ jupyter==1.0.0
 ipykernel==6.29.0
 
 # MLOps (подключим на следующем этапе)
-# mlflow==2.10.0
-# dvc==3.42.0
+mlflow==2.10.0
+dvc==3.42.0
 
 # Тесты
 pytest==8.0.0
+pytest-cov==4.1.0  # Для отчётов о покрытии кода

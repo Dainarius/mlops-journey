@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # ═══════════════════════════════════════════════════════════════
+  # СЕРВИС: Обучение модели
+  # ═══════════════════════════════════════════════════════════════
+  train:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mlops-train
+    volumes:
+      # Монтируем локальные папки в контейнер
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./models:/app/models
+      - ./mlruns:/app/mlruns  # ← добавлено для MLflow
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python src/train.py
+
+  # ═══════════════════════════════════════════════════════════════
+  # СЕРВИС: Инференс (предсказание)
+  # ═══════════════════════════════════════════════════════════════
+  predict:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mlops-predict
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./models:/app/models
+      - ./mlruns:/app/mlruns  # ← добавлено для MLflow
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python src/predict.py
+
+  # ═══════════════════════════════════════════════════════════════
+  # СЕРВИС: MLflow UI
+  # ═══════════════════════════════════════════════════════════════
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mlops-mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/app/mlruns
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python -m mlflow ui --host 0.0.0.0 --port 5000  # ← ИЗМЕНИЛИ!  # ═══════════════════════════════════════════════════════════════
+  # СЕРВИС: Интерактивный режим (для отладки)
+  # ═══════════════════════════════════════════════════════════════
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mlops-dev
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./models:/app/models
+      - ./mlruns:/app/mlruns  # ← добавлено для MLflow
+      - ./src:/app/src  # Монтируем код для горячей перезагрузки
+    environment:
+      - PYTHONUNBUFFERED=1
+    stdin_open: true
+    tty: true
+    command: /bin/bash

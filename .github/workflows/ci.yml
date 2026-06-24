@@ -1,0 +1,97 @@
+name: CI/CD Pipeline
+
+# Триггеры: когда запускать workflow
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+# Разрешения для workflow
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════
+  # JOB 1: Линтинг и тесты
+  # ═══════════════════════════════════════════════════════════════
+  test:
+    name: Code Quality & Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Шаг 1: Checkout кода
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Шаг 2: Установка Python
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'  # Кэширование зависимостей
+
+      # Шаг 3: Установка зависимостей
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov black flake8
+
+      # Шаг 4: Линтинг с Black (проверка формата кода)
+      - name: Check code formatting with Black
+        run: |
+          black --check src/ tests/
+        continue-on-error: true  # Не блокируем CI, если формат не идеален
+
+      # Шаг 5: Линтинг с Flake8 (проверка стиля)
+      - name: Lint with Flake8
+        run: |
+          # Останавливаем только при синтаксических ошибках
+          flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Предупреждения не блокируют CI
+          flake8 src/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+        continue-on-error: true
+
+      # Шаг 6: Запуск тестов с отчётом о покрытии
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing -v
+
+      # Шаг 7: Загрузка отчёта о покрытии (опционально)
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════════════════════
+  # JOB 2: Сборка Docker-образа
+  # ═══════════════════════════════════════════════════════════════
+  docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test  # Запускается только если тесты прошли
+    
+    steps:
+      # Шаг 1: Checkout кода
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Шаг 2: Настройка Docker Buildx (для продвинутой сборки)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Шаг 3: Сборка Docker-образа (без push в registry)
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: mlops-journey:ci-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
