@@ -55,9 +55,9 @@ class TestLoadData:
         # Пропускаем тест, если файла нет (например, в CI без данных)
         if not data_path.exists():
             pytest.skip(f"Файл данных не найден: {data_path}")
-        
+
         df = load_data(data_path)
-        
+
         assert isinstance(df, pd.DataFrame)
         assert len(df) > 0
         assert "Churn" in df.columns
@@ -66,6 +66,7 @@ class TestLoadData:
         """Проверяем, что возникает ошибка при отсутствии файла."""
         with pytest.raises(FileNotFoundError):
             load_data(Path("nonexistent_file.csv"))
+
 
 class TestPreprocessingPipeline:
     """Тесты для препроцессинг-пайплайна."""
