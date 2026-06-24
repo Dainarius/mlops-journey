@@ -31,7 +31,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'  # Кэширование зависимостей
+          cache: 'pip'
 
       # Шаг 3: Установка зависимостей
       - name: Install dependencies
@@ -40,27 +40,38 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-cov black flake8
 
-      # Шаг 4: Линтинг с Black (проверка формата кода)
+      # Шаг 4: СКАЧИВАЕМ ДАННЫЕ для тестов
+      - name: Download dataset for tests
+        run: |
+          mkdir -p data/raw
+          wget -q https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/master/data/Telco-Customer-Churn.csv -O data/raw/churn.csv
+          ls -lh data/raw/
+
+      # Шаг 5: ОБУЧАЕМ МОДЕЛЬ для тестов инференса
+      - name: Train model for inference tests
+        run: |
+          python src/train.py --n_estimators 50 --max_depth 3
+        continue-on-error: true  # Не блокируем CI, если обучение упадёт
+
+      # Шаг 6: Линтинг с Black
       - name: Check code formatting with Black
         run: |
           black --check src/ tests/
-        continue-on-error: true  # Не блокируем CI, если формат не идеален
+        continue-on-error: true
 
-      # Шаг 5: Линтинг с Flake8 (проверка стиля)
+      # Шаг 7: Линтинг с Flake8
       - name: Lint with Flake8
         run: |
-          # Останавливаем только при синтаксических ошибках
           flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
-          # Предупреждения не блокируют CI
           flake8 src/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
         continue-on-error: true
 
-      # Шаг 6: Запуск тестов с отчётом о покрытии
+      # Шаг 8: Запуск тестов с отчётом о покрытии
       - name: Run tests with coverage
         run: |
           pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing -v
 
-      # Шаг 7: Загрузка отчёта о покрытии (опционально)
+      # Шаг 9: Загрузка отчёта о покрытии
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         if: always()
@@ -68,7 +79,6 @@ jobs:
           name: coverage-report
           path: coverage.xml
           retention-days: 7
-
   # ═══════════════════════════════════════════════════════════════
   # JOB 2: Сборка Docker-образа
   # ═══════════════════════════════════════════════════════════════

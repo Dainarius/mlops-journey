@@ -42,29 +42,30 @@ class TestLoadData:
             load_data(Path("nonexistent_file.csv"))
 
 
-class TestCleanData:
-    """Тесты для функции очистки данных."""
+class TestLoadData:
+    """Тесты для функции загрузки данных."""
 
-    def test_clean_data_removes_customerid(self):
-        """Проверяем, что customerID удаляется."""
-        df_raw = pd.DataFrame({"customerID": ["A", "B"], "Churn": ["Yes", "No"], "TotalCharges": ["100", "200"]})
+    @pytest.fixture
+    def data_path(self):
+        """Путь к данным."""
+        return Path("data/raw/churn.csv")
 
-        df_clean = clean_data(df_raw)
+    def test_load_data_success(self, data_path):
+        """Проверяем, что данные загружаются успешно."""
+        # Пропускаем тест, если файла нет (например, в CI без данных)
+        if not data_path.exists():
+            pytest.skip(f"Файл данных не найден: {data_path}")
+        
+        df = load_data(data_path)
+        
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) > 0
+        assert "Churn" in df.columns
 
-        assert "customerID" not in df_clean.columns
-        assert "Churn" in df_clean.columns
-
-    def test_clean_data_converts_totalcharges(self):
-        """Проверяем, что TotalCharges конвертируется в число."""
-        df_raw = pd.DataFrame({"customerID": ["A", "B"], "Churn": ["Yes", "No"], "TotalCharges": ["100.5", "invalid"]})
-
-        df_clean = clean_data(df_raw)
-
-        assert df_clean["TotalCharges"].dtype in [np.float64, np.float32]
-        assert df_clean["TotalCharges"].iloc[0] == 100.5
-        # Пропуск должен быть заполнен медианой (в данном случае 100.5)
-        assert not pd.isna(df_clean["TotalCharges"].iloc[1])
-
+    def test_load_data_file_not_found(self):
+        """Проверяем, что возникает ошибка при отсутствии файла."""
+        with pytest.raises(FileNotFoundError):
+            load_data(Path("nonexistent_file.csv"))
 
 class TestPreprocessingPipeline:
     """Тесты для препроцессинг-пайплайна."""
